@@ -1,7 +1,7 @@
 ﻿using FastEndpoints;
 using Propelle.InterviewChallenge.Application;
-using Propelle.InterviewChallenge.Application.Domain;
 using Propelle.InterviewChallenge.Application.Domain.Events;
+using System.Reflection;
 
 namespace Propelle.InterviewChallenge.Endpoints
 {
@@ -21,14 +21,10 @@ namespace Propelle.InterviewChallenge.Endpoints
 
         public class Endpoint : Endpoint<Request, Response>
         {
-            private readonly PaymentsContext _paymentsContext;
             private readonly Application.EventBus.IEventBus _eventBus;
 
-            public Endpoint(
-                PaymentsContext paymentsContext,
-                Application.EventBus.IEventBus eventBus)
+            public Endpoint(Application.EventBus.IEventBus eventBus)
             {
-                _paymentsContext = paymentsContext;
                 _eventBus = eventBus;
             }
 
@@ -38,18 +34,17 @@ namespace Propelle.InterviewChallenge.Endpoints
             }
 
             public override async Task HandleAsync(Request req, CancellationToken ct)
-            {
-                var deposit = new Deposit(req.UserId, req.Amount);
-                _paymentsContext.Deposits.Add(deposit);
-
-                await _paymentsContext.SaveChangesAsync(ct);
-
-                await _eventBus.Publish(new DepositMade
+            {//I would create a domain layer that is separated from the database logic to do some validation before publishing the event.
+                var depositEvent = new DepositMade
                 {
-                    Id = deposit.Id
-                });
+                    Id = Guid.NewGuid(),
+                    UserId = req.UserId,
+                    Amount = req.Amount
+                };
 
-                await SendAsync(new Response { DepositId = deposit.Id }, 201, ct);
+                await _eventBus.Publish(depositEvent);
+
+                await SendAsync(new Response { DepositId = depositEvent.Id }, 201, ct);
             }
         }
     }

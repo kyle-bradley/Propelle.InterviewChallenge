@@ -1,4 +1,6 @@
-﻿namespace Propelle.InterviewChallenge.EventHandling
+﻿using Propelle.InterviewChallenge.Application;
+
+namespace Propelle.InterviewChallenge.EventHandling
 {
     public class InMemoryEventExchange
     {
@@ -19,7 +21,7 @@
 
             foreach (var eventHandler in eventHandlers)
             {
-                await eventHandler.Handle(@event);
+                await RetryFunctions.ExecuteTask(() => eventHandler.Handle(@event));
             }
         }
     }
