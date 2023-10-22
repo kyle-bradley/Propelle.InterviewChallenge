@@ -18,8 +18,10 @@ namespace Propelle.InterviewChallenge
             builder.Services.AddDbContext<PaymentsContext>();
             builder.Services.AddSingleton<ISmartInvestClient, SmartInvestClient>();
             builder.Services.AddSingleton<InMemoryEventExchange>();
+            builder.Services.AddSingleton<FileDeadLetterEventExchange>();
             builder.Services.AddSingleton<Application.EventBus.IEventBus, SimpleEventBus>();
             builder.Services.AddTransient<EventHandling.IEventHandler<DepositMade>, SubmitDeposit>();
+            builder.Services.AddTransient<EventHandling.IEventHandler<DepositMade>, PersistDeposit>();
             builder.Services.AddFastEndpoints();
 
             var app = builder.Build();
